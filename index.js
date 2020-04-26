@@ -6,7 +6,7 @@ import toYuanFilter from 'components/filters/toYuan';
 import App from './app.vue';
 import routes from './route';
 
-import './vendor';
+//import './vendor';
 import './index.scss';
 
 Vue.use(Element, { size: 'small' });

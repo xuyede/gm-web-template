@@ -14,6 +14,40 @@
                 <el-form-item>
                   <el-input v-model="form.data" placeholder="请输入搜索内容"></el-input>
                 </el-form-item>
+
+                <el-form-item label="状态">
+                  <el-select v-model="form.status" placeholder="请选择">
+                    <el-option
+                      v-for="item in statusOptions"
+                      :key="item.status"
+                      :label="item.label"
+                      :value="item.status"
+                    ></el-option>
+                  </el-select>
+                </el-form-item>
+
+                <el-form-item label="时间">
+                  <el-col :span="11">
+                    <el-date-picker
+                      type="date"
+                      placeholder="开始日期"
+                      value-format="yyyy-MM-dd HH:mm:ss"
+                      v-model="form.startTime"
+                      style="width: 100%;"
+                    ></el-date-picker>
+                  </el-col>
+                  <el-col class="line" :span="2">至</el-col>
+                  <el-col :span="11">
+                    <el-date-picker
+                      type="date"
+                      placeholder="结束时间"
+                      value-format="yyyy-MM-dd HH:mm:ss"
+                      v-model="form.endTime"
+                      style="width: 100%;"
+                    ></el-date-picker>
+                  </el-col>
+                </el-form-item>
+
                 <el-form-item>
                   <el-button type="primary" @click="() => handleSearch()">查询</el-button>
                 </el-form-item>
@@ -31,7 +65,14 @@
         <div class="col-lg-12 col-xs-12">
           <div class="panel panel-default">
             <div class="panel-body">
-              <el-table :data="tableData" border style="width: 100%">
+              <el-table 
+                :data="tableData" 
+                border 
+                style="width: 100%"
+                @selection-change="handleSelectionChange"
+              >
+                <!-- 不需要多选的把下面的 el-table-colum 删除掉，把上面的 @selection-change 删除掉-->
+                <el-table-column type="selection" width="55" :selectable="selectInit"></el-table-column>
                 <el-table-column prop="id" label="序号"></el-table-column>
                 <el-table-column prop="name" label="姓名"></el-table-column>
                 <el-table-column prop="age" label="年龄"></el-table-column>
@@ -45,10 +86,10 @@
 
               <el-pagination
                 @current-change="handleCurrentChange"
-                :current-page.sync="page_count"
-                :page-size="pageSize"
+                :current-page.sync="pagination.pageNumber"
+                :page-size="pagination.pageSize"
                 layout="total, prev, pager, next, jumper"
-                :total="total"
+                :total="pagination.total"
                 class="ui-pagination"
               ></el-pagination>
             </div>
@@ -62,55 +103,69 @@
 <script>
 import * as service from "@/api/{{{api}}}";
 
-const setLocalStorage = param => window.localStorage.setItem('GM_KEY', JSON.stringify(param))
-
 export default {
-  inject: ["reload"],
+  inject: ["reload"], // this.reload() 可刷新页面
   data() {
     return {
       form: {
-        data: ""
+        data: "",
+        status: '',
+        startTime: '',
+        endTime: '',
       },
-      page_count: 1,
-      tableData: null,
-      requestData: null,
-      pageSize: 20, // 请求数据条数
-      total: 0, // 总数
+      statusOptions: [ // 状态map
+        {
+          status: '',
+          label: '全部'
+        },
+        {
+          status: '0',
+          label: '待推送'
+        },
+        {
+          status: '5',
+          label: '推送中'
+        }
+      ],
+      pagination: { // 分页相关
+        pageNumber: 1, // 请求数据页数
+        pageSize: 20, // 请求数据条数
+        total: 0, // 总数
+      },
+      selection: '', // 多选数据
+      tableData: null, // table显示数据
     };
   },
   methods: {
     handleCurrentChange(val) {
-      console.log(`页数:${val}`)
+      console.log(`页数:${val}`);
     },
     handleSearch() {
-      if (this.form.data == '') {
-        return 
-      }
-
-      this.$alert(
-        `${this.form.data}`,
-        '搜索',
-        { confirmButtonText: '确定' }
-      )
+      console.log(`搜索`);
+    },
+    handleReset() {
+      console.log(`重置`);
     },
     handleEdit(row) {
       const { id } = row;
-      const targetParam = this.requestData.filter(item => item.id == id);
-      setLocalStorage(targetParam[0]);
       this.$router.push({ name: "detail", params: { id } });
+    },
+    handleAdd() {
+      this.$router.push({ name: "detail", params: { id: 0 } });
     },
     handleDelete(row) {
       const { id } = row
       this.tableData = this.tableData.filter(i => i.id != id)
     },
-    handleAdd() {
-      this.$router.push({ name: "detail", params: { id: 0 } });
+    handleSelectionChange(selectItem) {
+      this.selection = selectItem;
     },
-    handleReset() {
-      this.form.data = "";
+    // 处理是否可选
+    selectInit(row, index) {
+      return true;
     },
-    dealList(ret) {
-      console.log('处理数据')
+    initList() {
+      console.log('初始化列表')
       this.tableData = [
         {
           id: 1,
@@ -123,12 +178,7 @@ export default {
           age: 19
         }
       ]
-      this.requestData = this.tableData
       this.total = this.tableData.length
-    },
-    initList() {
-      console.log('初始化列表')
-      this.dealList()
     }
   },
   created() {

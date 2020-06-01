@@ -2,8 +2,8 @@
   <div>
     <div class="has-success">
       <label class="control-label col-lg-4">
-        <h4 v-if="isAdd">添加推荐词</h4>
-        <h4 v-else>编辑推荐词</h4>
+        <h4 v-if="isAdd">添加</h4>
+        <h4 v-else>编辑</h4>
       </label>
     </div>
 
@@ -15,22 +15,14 @@
               <el-row>
                 <el-col :md="24">
                   <el-form
-                    :model="ruleForm"
+                    :model="form"
                     :rules="rules"
                     ref="ruleForm"
                     label-width="120px"
                     class="demo-ruleForm"
                   >
-                    <el-form-item label="id" prop="id">
-                      <el-input v-model="ruleForm.id"></el-input>
-                    </el-form-item>
-
-                    <el-form-item label="姓名" prop="name">
-                      <el-input v-model="ruleForm.name"></el-input>
-                    </el-form-item>
-
-                    <el-form-item label="年龄" prop="age">
-                      <el-input v-model="ruleForm.age"></el-input>
+                    <el-form-item label="name" prop="name">
+                      <el-input v-model="form.name"></el-input>
                     </el-form-item>
 
                     <el-form-item>
@@ -52,19 +44,6 @@
 <script>
 import * as service from "@/api/{{{api}}}";
 
-const getLocalStorage = key => JSON.parse(window.localStorage.getItem(key));
-
-const validateAge = (rule, value, callback) => {
-  if (value == '') {
-    return callback(new Error('不能为空'))
-  }
-  if ( !isNaN(+value) ) {
-    callback();
-  } else {
-    callback(new Error("年龄为数字"));
-  }
-};
-
 const validateName = (rule, value, callback) => {
   if (value == '') {
     return callback(new Error('不能为空'))
@@ -82,15 +61,10 @@ export default {
   data() {
     return {
       name: "detail",
-      ruleForm: {
-        id: '',
+      form: {
         name: '',
-        age: ''
       },
       rules: {
-        age: [
-          { validator: validateAge, trigger: "blur" }
-        ],
         name: [
           { validator: validateName, trigger: "blur" }
         ]
@@ -106,11 +80,7 @@ export default {
     submitForm(formName) {
       this.$refs[formName].validate(valid => {
         if (valid) {
-          this.$alert(
-            `${this.ruleForm.id}-${this.ruleForm.name}-${this.ruleForm.age}`, 
-            '提交',
-            { confirmButtonText: '确定' }
-          )
+          console.log('submit');
         } else {
           console.log("error submit!!");
           return false;
@@ -120,11 +90,7 @@ export default {
     updateForm(formName) {
       this.$refs[formName].validate(valid => {
         if (valid) {
-          this.$alert(
-            `${this.ruleForm.id}-${this.ruleForm.name}-${this.ruleForm.age}`, 
-            '提交',
-            { confirmButtonText: '确定' }
-          )
+          console.log('update');
         } else {
           console.log("error submit!!");
           return false;
@@ -135,10 +101,8 @@ export default {
       this.$router.go(-1);
     },
     fillForm() {
-      const { name, age, id } = getLocalStorage("GM_KEY");
-
-      this.ruleForm = {
-        id, name, age
+      this.form = {
+        name: 'sunday'
       };
     }
   },
